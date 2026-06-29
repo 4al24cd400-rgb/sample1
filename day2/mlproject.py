@@ -23,7 +23,7 @@ except ImportError:
 def main():
 
     print("Loading Dataset")
-    file_path = "train.csv"
+    file_path = "redwine.csv"
 
     if not os.path.exists(file_path):
         print(f"Error: Cannot find '{file_path}'")
@@ -31,6 +31,27 @@ def main():
 
     df = pd.read_csv(file_path)
     print(f"Dataset Loaded Successfully, Rows: {df.shape[0]}, Features: {df.shape[1]}\n")
+
+
+
+    # Handling Missing Values
+    print("Artificially creating missing data for the issues")
+
+    df.loc[0:24, 'H'] = np.nan
+
+    imputer = SimpleImputer(strategy='median')
+
+    df['H'] = imputer.fit_transform(df[['H']]).ravel()
+
+    print(f"Imputation complete. 'H' now has {df['H'].isnull().sum()} null values.\n")
+
+    print("Evaluating the skewness of the Runs (R) distribution...")
+
+    df['LogRuns'] = np.log1p(df['R'])
+
+    print(f"Log Transformation applied. New skewness: {df['LogRuns'].skew():.2f} (closer to 0 is perfectly balanced).\n")
+
+
 
     df["Team_ID"] = ["Team_" + str(np.random.randint(1,150)) for _ in range(len(df))]
 
@@ -46,7 +67,7 @@ def main():
 
     # Feature Selection
 
-    features_to_test = ['R','HR','SO','SB']
+    features_to_test = ['fixed acidity','volatile acidity','citric acid','residual sugar','chlorides']
 
     X_features = df[features_to_test].fillna(0)
     y_target = df['W']
@@ -80,22 +101,19 @@ def main():
     prediction = model.predict(X_test)
     print(prediction)
 
-    # Handling Missing Values
-    print("Artificially creating missing data for the issues")
 
-    df.loc[0:24, 'H'] = np.nan
+    # Comparing model prediction to the actual real answer
 
-    imputer = SimpleImputer(strategy='median')
+    actual_wins = y_test.head(3).values
+    predicted_wins=prediction[:3]
 
-    df['H'] = imputer.fit_transform(df[['H']]).ravel()
-
-    print(f"Imputation complete. 'H' now has {df['H'].isnull().sum()} null values.\n")
-
-    print("Evaluating the skewness of the Runs (R) distribution...")
-
-    df['LogRuns'] = np.log1p(df['R'])
-
-    print(f"Log Transformation applied. New skewness: {df['LogRuns'].skew():.2f} (closer to 0 is perfectly balanced).\n")
+    for i in range(3):
+        predicted = round(predicted_wins[i])
+        actual = actual_wins[i]
+        difference=abs(actual-predicted)
+        print(f"Model Gussed:{predicted}")
+        print(f"Real Answer:{actual}")
+        print(f"Differences:{difference}")
 
 
 if __name__ == "__main__":
