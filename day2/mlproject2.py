@@ -19,7 +19,7 @@ except ImportError:
 
 def main():
 
-    print("Loading Dataset")
+    print("Loading Dataset:")
     file_path = "insurance.csv"
 
     if not os.path.exists(file_path):
@@ -30,8 +30,8 @@ def main():
     print(f"Dataset Loaded Successfully, Rows: {df.shape[0]}, Features: {df.shape[1]}\n")
 
 
-
     # Handling Missing Values
+    print("\nHandling Missing Values:\n")
     print("Artificially creating missing data for the issues")
 
     df.loc[0:24, 'bmi'] = np.nan
@@ -60,6 +60,8 @@ def main():
     else:
         print("Category Encoder not installed")
 
+    print("\nFeature Selection:\n")
+
     # Feature Selection
 
     features_to_test = ['age', 'bmi', 'children']
@@ -76,6 +78,8 @@ def main():
 
     print(best_features)
 
+    print("\nSpliting Data:\n")
+
     # Spliting Data
 
     X = df[best_features]
@@ -88,6 +92,8 @@ def main():
     print(f"Training Data Size: {X_train.shape}")
     print(f"Testing Data Size: {X_test.shape}\n")
 
+    print("\nTraining Model:\n")
+
     # Training Model
 
     model=LinearRegression()
@@ -95,6 +101,9 @@ def main():
 
     prediction = model.predict(X_test)
     print(prediction)
+
+
+    print("\nComparing model prediction to the actual real answer:\n")
 
 
     # Comparing model prediction to the actual real answer
