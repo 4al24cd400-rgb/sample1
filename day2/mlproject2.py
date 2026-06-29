@@ -1,7 +1,4 @@
-from IPython.core import getipython
-from IPython.core import getipython
-from re import X
-import selectors
+
 import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
@@ -23,7 +20,7 @@ except ImportError:
 def main():
 
     print("Loading Dataset")
-    file_path = "train.csv"
+    file_path = "insurance.csv"
 
     if not os.path.exists(file_path):
         print(f"Error: Cannot find '{file_path}'")
@@ -37,40 +34,38 @@ def main():
     # Handling Missing Values
     print("Artificially creating missing data for the issues")
 
-    df.loc[0:24, 'H'] = np.nan
+    df.loc[0:24, 'bmi'] = np.nan
 
     imputer = SimpleImputer(strategy='median')
 
-    df['H'] = imputer.fit_transform(df[['H']]).ravel()
+    df['bmi'] = imputer.fit_transform(df[['bmi']]).ravel()
 
-    print(f"Imputation complete. 'H' now has {df['H'].isnull().sum()} null values.\n")
+    print(f"Imputation complete. 'bmi' now has {df['bmi'].isnull().sum()} null values.\n")
 
-    print("Evaluating the skewness of the Runs (R) distribution...")
+    print("Evaluating the skewness of the charges distribution...")
 
-    df['LogRuns'] = np.log1p(df['R'])
+    df['LogCharges'] = np.log1p(df['charges'])
 
-    print(f"Log Transformation applied. New skewness: {df['LogRuns'].skew():.2f} (closer to 0 is perfectly balanced).\n")
+    print(f"Log Transformation applied. New skewness: {df['LogCharges'].skew():.2f} (closer to 0 is perfectly balanced).\n")
 
 
-
-    df["Team_ID"] = ["Team_" + str(np.random.randint(1,150)) for _ in range(len(df))]
 
     if TargetEncoder is not None:
         print("Applying Target Encoder")
 
         encoder = TargetEncoder()
 
-        df["Team_ID_Encoder"] = encoder.fit_transform(df["Team_ID"], df["H"])
+        df["region_encoded"] = encoder.fit_transform(df["region"], df["charges"])
 
     else:
         print("Category Encoder not installed")
 
     # Feature Selection
 
-    features_to_test = ['R','HR','SO','SB']
+    features_to_test = ['age', 'bmi', 'children']
 
     X_features = df[features_to_test].fillna(0)
-    y_target = df['W']
+    y_target = df['charges']
 
     selector = SelectKBest(score_func=mutual_info_regression, k=2)
 
@@ -84,7 +79,7 @@ def main():
     # Spliting Data
 
     X = df[best_features]
-    y = df['H']
+    y = df['charges']
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
